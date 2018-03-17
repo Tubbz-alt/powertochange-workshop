@@ -1,0 +1,3 @@
+# Preact Parcel Project
+
+Trying out [parceljs](https://parceljs.org)...
