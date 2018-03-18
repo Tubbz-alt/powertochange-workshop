@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import * as THREE from "three";
 const OrbitControls = require("three-orbit-controls")(THREE);
 import { Observable } from "rxjs";
+import Model from "./model";
 
 export default class Scene extends Component {
 
@@ -24,12 +25,7 @@ export default class Scene extends Component {
   }
 
   componentDidMount() {
-    const model = new THREE.Mesh(
-      new THREE.BoxGeometry(2,2,2),
-      new THREE.MeshNormalMaterial()
-    );
-
-    this.scene.add(model);
+    this.scene.add(new Model());
 
     this.controls = new OrbitControls(this.camera);
     this.controls.maxPolarAngle = 1.5;
