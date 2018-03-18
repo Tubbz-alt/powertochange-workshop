@@ -13,7 +13,7 @@ export default class Scene extends Component {
     this.scene = new THREE.Scene();
 
     this.camera = new THREE.PerspectiveCamera(50, width/height, 0.1, 1000);
-    this.camera.position.set(5, 5, -10);
+    this.camera.position.set(10, 15, -5);
     this.camera.lookAt(new THREE.Vector3());
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -22,6 +22,8 @@ export default class Scene extends Component {
     this.renderer.setSize(width, height);
 
     this.render3D = this.render3D.bind(this);
+
+    console.log("CONSTRUCT")
   }
 
   componentDidMount() {
@@ -30,10 +32,19 @@ export default class Scene extends Component {
     this.controls = new OrbitControls(this.camera);
     this.controls.maxPolarAngle = 1.5;
 
-    Observable
+    const wheel$ = Observable
+      .fromEvent(this.renderer.domElement, 'wheel')
+
+    const mouseMove$ = Observable
       .fromEvent(this.renderer.domElement, 'mousemove')
-      .startWith(true)
-      .subscribe(this.render3D);
+
+    this.render$ = Observable.merge(wheel$, mouseMove$)
+                      .startWith(true)
+                      .subscribe(this.render3D);
+  }
+
+  componentWillUnmount() {
+    this.render$.unsubscribe();
   }
 
   render3D() {
