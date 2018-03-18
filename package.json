@@ -13,7 +13,6 @@
   "author": "John Rees <john@bitsushi.com>",
   "license": "MPL-2.0",
   "devDependencies": {
-    "babel-plugin-auto-import": "^0.7.1",
     "babel-preset-env": "^1.6.1",
     "babel-preset-preact": "^1.1.0",
     "gh-pages": "^1.1.0",
