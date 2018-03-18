@@ -3,6 +3,7 @@ import * as THREE from "three";
 const OrbitControls = require("three-orbit-controls")(THREE);
 import { Observable } from "rxjs";
 import Model from "./model";
+import Ground from "./ground";
 
 export default class Scene extends Component {
 
@@ -22,11 +23,10 @@ export default class Scene extends Component {
     this.renderer.setSize(width, height);
 
     this.render3D = this.render3D.bind(this);
-
-    console.log("CONSTRUCT")
   }
 
   componentDidMount() {
+    this.scene.add(Ground());
     this.scene.add(new Model());
 
     this.controls = new OrbitControls(this.camera);
