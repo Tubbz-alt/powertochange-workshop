@@ -1,6 +1,7 @@
 import { h, Component } from 'preact';
 import * as THREE from "three";
-import "three/examples/js/controls/OrbitControls";
+const OrbitControls = require("three-orbit-controls")(THREE);
+import { Observable } from "rxjs";
 
 export default class Scene extends Component {
 
@@ -30,10 +31,13 @@ export default class Scene extends Component {
 
     this.scene.add(model);
 
-    this.controls = new THREE.OrbitControls(this.camera);
+    this.controls = new OrbitControls(this.camera);
     this.controls.maxPolarAngle = 1.5;
 
-    this.render3D();
+    Observable
+      .fromEvent(this.renderer.domElement, 'mousemove')
+      .startWith(true)
+      .subscribe(this.render3D);
   }
 
   render3D() {
