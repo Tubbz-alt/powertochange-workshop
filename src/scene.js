@@ -65,7 +65,10 @@ export default class Scene extends Component {
       .map(checkForIntersection.bind(this))
       .subscribe(console.log);
 
-    this.render$ = Observable.merge(wheel$, mouseMove$)
+    this.render$ = Observable
+                      .merge(wheel$, mouseMove$)
+                      .throttleTime(20)
+                      .delay(10)
                       .startWith(true)
                       .subscribe(this.render3D);
   }
