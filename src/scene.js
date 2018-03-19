@@ -2,8 +2,15 @@ import { h, Component } from 'preact';
 import * as THREE from "three";
 const OrbitControls = require("three-orbit-controls")(THREE);
 import { Observable } from "rxjs";
-import Model from "./model";
+// import Model from "./model";
+import Entity from "./entity"
 import Ground from "./ground";
+
+const MouseButton = {
+  PRIMARY: 1,
+  SECONDARY: 2,
+  WHEEL: 4
+};
 
 function getPosition(x, y, width, height) {
   return [x / width * 2 - 1, -(y / height) * 2 + 1];
@@ -39,7 +46,8 @@ export default class Scene extends Component {
 
     this.raycaster = new THREE.Raycaster();
 
-    this.model = new Model();
+    // this.model = new Model();
+    this.model = new Entity();
 
     this.render3D = this.render3D.bind(this);
   }
@@ -52,21 +60,46 @@ export default class Scene extends Component {
     this.controls.maxPolarAngle = 1.5;
 
     const wheel$ = Observable
-      .fromEvent(this.renderer.domElement, 'wheel');
+                    .fromEvent(this.renderer.domElement, 'wheel');
 
     const mouseMove$ = Observable
-      .fromEvent(this.renderer.domElement, 'mousemove')
-      // .share();
+                        .fromEvent(this.renderer.domElement, 'mousemove')
+                        .share();
+
+    const intersections$ = mouseMove$
+                            .map(checkForIntersection.bind(this))
+                            .distinctUntilChanged((x, y) => {
+                              if (x.length > 0 && y.length > 0) {
+                                return x[0].faceIndex === y[0].faceIndex;
+                              } else {
+                                return (x.length === y.length)
+                              }
+                            });
 
     const mouseDown$ = Observable
-      .fromEvent(this.renderer.domElement, 'mousedown')
+                        .fromEvent(this.renderer.domElement, 'mousedown')
+                        .share();
 
-    mouseDown$
-      .map(checkForIntersection.bind(this))
-      .subscribe(console.log);
+    const extrude$ = mouseDown$
+      .withLatestFrom(intersections$)
+      .filter( ([event, intersections]) => intersections.length > 0)
+      .do( ([{ buttons }, intersections]) => {
+        const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
+        const { polygon } = intersections[0].face;
+        console.log(polygon);
+        polygon.extrude(1 * direction);
+      });
+
+    const mouseUp$ = Observable
+                      .fromEvent(document, 'mouseup');
+
+    const mouseDownAndMoving$ = mouseDown$
+                                  .switchMapTo(mouseMove$)
+                                  .takeUntil(mouseUp$)
+                                  .repeat();
 
     this.render$ = Observable
-                      .merge(wheel$, mouseMove$)
+                      .merge(wheel$, mouseDownAndMoving$, extrude$)
                       .throttleTime(20)
                       .delay(10)
                       .startWith(true)
@@ -78,6 +111,7 @@ export default class Scene extends Component {
   }
 
   render3D() {
+    console.log('render');
     this.renderer.render(this.scene, this.camera);
   }
 
