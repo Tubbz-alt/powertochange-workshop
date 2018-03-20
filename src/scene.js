@@ -66,7 +66,21 @@ export default class Scene extends Component {
                         .fromEvent(this.renderer.domElement, 'mousemove')
                         .share();
 
-    const intersections$ = mouseMove$
+    const mouseUp$ = Observable
+                        .fromEvent(document, 'mouseup')
+                        .do(_ => this.controls.enabled = true)
+                        .share();
+
+    const mouseDown$ = Observable
+                        .fromEvent(this.renderer.domElement, 'mousedown')
+                        .share();
+
+    const mouseDownAndMoving$ = mouseDown$
+                                  .switchMapTo(mouseMove$)
+                                  .takeUntil(mouseUp$)
+                                  .repeat();
+
+    const intersections$ = Observable.merge(mouseMove$, mouseUp$)
                             .map(checkForIntersection.bind(this))
                             .distinctUntilChanged((x, y) => {
                               if (x.length > 0 && y.length > 0) {
@@ -75,10 +89,6 @@ export default class Scene extends Component {
                                 return (x.length === y.length)
                               }
                             });
-
-    const mouseDown$ = Observable
-                        .fromEvent(this.renderer.domElement, 'mousedown')
-                        .share();
 
     const extrude$ = mouseDown$
       .withLatestFrom(intersections$)
@@ -90,15 +100,6 @@ export default class Scene extends Component {
         // console.log(polygon);
         polygon.extrude(1 * direction);
       });
-
-    const mouseUp$ = Observable
-                      .fromEvent(document, 'mouseup')
-                      .do(_ => this.controls.enabled = true)
-
-    const mouseDownAndMoving$ = mouseDown$
-                                  .switchMapTo(mouseMove$)
-                                  .takeUntil(mouseUp$)
-                                  .repeat();
 
     this.render$ = Observable
                       .merge(wheel$, mouseDownAndMoving$, extrude$)
