@@ -84,14 +84,16 @@ export default class Scene extends Component {
       .withLatestFrom(intersections$)
       .filter( ([event, intersections]) => intersections.length > 0)
       .do( ([{ buttons }, intersections]) => {
+        this.controls.enabled = false;
         const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
         const { polygon } = intersections[0].face;
-        console.log(polygon);
+        // console.log(polygon);
         polygon.extrude(1 * direction);
       });
 
     const mouseUp$ = Observable
-                      .fromEvent(document, 'mouseup');
+                      .fromEvent(document, 'mouseup')
+                      .do(_ => this.controls.enabled = true)
 
     const mouseDownAndMoving$ = mouseDown$
                                   .switchMapTo(mouseMove$)
