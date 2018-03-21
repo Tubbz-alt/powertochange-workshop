@@ -56,6 +56,10 @@ export default class Scene extends Component {
     this.scene.add(Ground());
     this.scene.add(this.model);
 
+    this.plane = new THREE.Plane(new THREE.Vector3(1, 1, 0.2), 0);
+    this.planeHelper = new THREE.PlaneHelper(this.plane, 10, 0xffff00);
+    this.scene.add(this.planeHelper);
+
     this.controls = new OrbitControls(this.camera);
     this.controls.maxPolarAngle = 1.5;
 
@@ -81,6 +85,7 @@ export default class Scene extends Component {
                                   .repeat();
 
     const intersections$ = Observable.merge(mouseMove$, mouseUp$)
+                            .throttleTime(50)
                             .map(checkForIntersection.bind(this))
                             .distinctUntilChanged((x, y) => {
                               if (x.length > 0 && y.length > 0) {
@@ -91,18 +96,38 @@ export default class Scene extends Component {
                             });
 
     const extrude$ = mouseDown$
-      .withLatestFrom(intersections$)
-      .filter( ([event, intersections]) => intersections.length > 0)
-      .do( ([{ buttons }, intersections]) => {
-        this.controls.enabled = false;
-        const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
-        const { polygon } = intersections[0].face;
-        // console.log(polygon);
-        polygon.extrude(1 * direction);
-      });
+                      .withLatestFrom(intersections$)
+                      .filter( ([event, intersections]) => intersections.length > 0)
+                      .do(_ => this.controls.enabled = false)
+                      .share();
+
+    const dragExtrude$ = extrude$
+                          .do( ([{ buttons }, intersections]) => {
+                            const intersection = intersections[0];
+                            // const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
+                            const { polygon } = intersection.face;
+                            console.log(polygon);
+                            // polygon.extrude(1 * direction);
+
+                            this.plane.setFromNormalAndCoplanarPoint(
+                              intersection.face.normal,
+                              intersection.point.clone()
+                            );
+                          })
+                          .switchMapTo(mouseMove$)
+                          .takeUntil(mouseUp$)
+                          .repeat()
+                          .subscribe(_ => console.log('extruding'));
+
+    const clickExtrude$ = extrude$
+                            .do( ([{ buttons }, intersections]) => {
+                              const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
+                              const { polygon } = intersections[0].face;
+                              polygon.extrude(1 * direction);
+                            });
 
     this.render$ = Observable
-                      .merge(wheel$, mouseDownAndMoving$, extrude$)
+                      .merge(wheel$, mouseDownAndMoving$)
                       .throttleTime(20)
                       .delay(10)
                       .startWith(true)
