@@ -4,7 +4,6 @@ const OrbitControls = require("three-orbit-controls")(THREE);
 import { Observable } from "rxjs";
 // import Model from "./model";
 import Entity from "./entity"
-import Ground from "./ground";
 
 const MouseButton = {
   PRIMARY: 1,
@@ -53,8 +52,12 @@ export default class Scene extends Component {
   }
 
   componentDidMount() {
-    this.scene.add(Ground());
     this.scene.add(this.model);
+
+    var ground = new THREE.GridHelper(20, 20, 0xDDDDDD, 0xEEEEEE);
+    ground.rotation.x = -Math.PI;
+    ground.position.set(0, 0, 0);
+    this.scene.add(ground);
 
     this.plane = new THREE.Plane(new THREE.Vector3(1, 1, 0.2), 0);
     this.planeHelper = new THREE.PlaneHelper(this.plane, 10, 0xffff00);
