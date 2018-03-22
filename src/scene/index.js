@@ -59,7 +59,7 @@ export default class Scene extends Component {
     this.entity = new Entity();
     this.scene.add(this.entity);
 
-    this.plane = new THREE.Plane(new THREE.Vector3(1, 1, 0.2), 0);
+    this.plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     // this.planeHelper = new THREE.PlaneHelper(this.plane, 10, 0xffff00);
     // this.scene.add(this.planeHelper);
 
@@ -131,13 +131,25 @@ export default class Scene extends Component {
 
     // house specific actions
 
+    const intersectionPt = new THREE.Vector3();
+    let is;
+
     const wallMouseDown$ =
       faceMouseDown$
         .filter( ([event, intersections]) => {
-          const {face} = intersections.find(i => i.face);
+          const intersection = is = intersections[0];//intersections.find(i => i.face);
+          const { face } = intersection;
           return (
             face.normal.x === 1 ||
             face.normal.x === -1
+          );
+        })
+        .do( ([event, intersections]) => {
+          const { point, face } = intersections[0];
+          this.plane.setFromCoplanarPoints(
+            point.clone(),
+            point.clone().add(new THREE.Vector3(0,1,0)),
+            point.clone().add(face.normal.normalize())
           );
         })
         .do(_ => console.log('wall'));
@@ -145,7 +157,9 @@ export default class Scene extends Component {
     const endWallMouseDown$ =
       faceMouseDown$
         .filter( ([event, intersections]) => {
-          const {face} = intersections.find(i => i.face);
+          const intersection = is = intersections[0];
+          const { face } = intersection;
+
           return (
             face.normal.z === 1 || face.normal.z === -1
           );
@@ -159,6 +173,13 @@ export default class Scene extends Component {
         .switchMapTo(mouseMove$)
         .takeUntil(mouseUp$)
         .do(_ => console.log('dragging wall'))
+        .do(_ => {
+          this.raycaster.ray.intersectPlane(this.plane, intersectionPt);
+          is.face.polygon.vertices.forEach(vertex => {
+            vertex.x = intersectionPt.x;
+          });
+          is.face.polygon.geometry.verticesNeedUpdate = true;
+        })
         .repeat();
 
     const endWallDrag$ =
