@@ -5,31 +5,7 @@ import { Observable } from "rxjs";
 // import Model from "./model";
 import Entity from "./entity"
 import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./utils";
-import Window from "./entity/window";
-
-function addWindow([{ buttons }, intersections]) {
-  const intersection = intersections[0];
-  const { polygon } = intersection.face;
-
-  if (polygon.window) {
-    this.scene.remove(polygon.window);
-    polygon.window = undefined;
-  } else {
-    polygon.window = new Window();
-    // console.log(intersection.point);
-    polygon.window.position.copy(intersection.point);
-    polygon.window.lookAt(
-      intersection.point.clone().add(intersection.face.normal)
-    );
-    // intersection.object.add(w);
-    this.scene.add(polygon.window);
-  }
-
-  // const a = new THREE.AxesHelper(10);
-  // a.lookAt( intersection.face.normal );
-  // a.position.copy(intersection.point);
-  // intersection.object.add(a);
-}
+import Window, { addWindow } from "./entity/window";
 
 export default class Scene extends Component {
 
@@ -38,6 +14,7 @@ export default class Scene extends Component {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.render3D = this.render3D.bind(this);
+    this.addEvents = this.addEvents.bind(this);
   }
 
   componentDidMount() {
@@ -74,13 +51,8 @@ export default class Scene extends Component {
       }));
     });
 
-    // this.model = new Model();
     this.model = new Entity();
     this.scene.add(this.model);
-
-    // const w = new Window();
-    // w.position.z = 0.5;
-    // this.scene.add(w);
 
     var ground = new THREE.GridHelper(20, 20, 0xDDDDDD, 0xEEEEEE);
     ground.rotation.x = -Math.PI;
@@ -90,6 +62,17 @@ export default class Scene extends Component {
     this.plane = new THREE.Plane(new THREE.Vector3(1, 1, 0.2), 0);
     // this.planeHelper = new THREE.PlaneHelper(this.plane, 10, 0xffff00);
     // this.scene.add(this.planeHelper);
+
+    this.addEvents();
+  }
+
+  addEvents() {
+
+    let is;
+    const planeIntersection = new THREE.Vector3();
+    const startPt = new THREE.Vector3();
+    let origVertices = [];
+    let vertices = [];
 
     const wheel$ = Observable
                     .fromEvent(this.renderer.domElement, 'wheel');
@@ -147,25 +130,21 @@ export default class Scene extends Component {
                                   );
                                 })
                                 .do( ([event, intersections]) => {
-                                  const { face } = intersections[0];
+                                  const intersection = intersections[0];
+                                  const { face } = intersection;
                                   const { polygon } = face;
 
                                   const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
 
                                   if (face.normal.z === 1) {
-                                    polygon.append(amount);
+                                    intersection.object.append(amount);
+                                    // polygon.append(amount);
                                   } else {
-                                    polygon.prepend(amount);
+                                    intersection.object.prepend(amount);
+                                    // polygon.prepend(amount);
                                   }
-                                  console.log(face.normal)
+                                  // console.log(face.normal)
                                 });
-
-
-    let is;
-    const planeIntersection = new THREE.Vector3();
-    const startPt = new THREE.Vector3();
-    let origVertices = [];
-    let vertices = [];
 
     const dragExtrude$ = wallMouseDown$
                           .do(addWindow.bind(this))

@@ -4,6 +4,11 @@ export const MouseButton = {
   WHEEL: 4
 };
 
+export function normalToString(face) {
+  const { normal } = face;
+  return [normal.x, normal.y, normal.z].join("");
+}
+
 export function getPosition(x, y, width, height) {
   return [x / width * 2 - 1, -(y / height) * 2 + 1];
 }

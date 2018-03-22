@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Polygon from './polygon';
 import groupBy from 'lodash/groupBy';
-import { normalToString } from './face';
+import { normalToString } from '../utils';
 
 
 function shapeFromPoints(points) {
@@ -33,7 +33,32 @@ export default class Entity extends THREE.Mesh {
     this.geometry = extrudePoints(1.2, this.profile);
     this.material = new THREE.MeshNormalMaterial();
 
+    this.bays = [true];
+
+    this.prepend = this.prepend.bind(this);
+    this.append = this.append.bind(this);
+
     this.makePolygons();
+  }
+
+  prepend(number=1) {
+    if (number >= 0) {
+      this.bays = [this.bays.length, ...this.bays];
+    } else {
+      this.bays = this.bays.slice(-number)
+    }
+
+    console.log(`prepend ${number}`, this.bays)
+  }
+
+  append(number=1) {
+    if (number >= 0) {
+      this.bays = [...this.bays, this.bays.length];
+    } else {
+      this.bays = this.bays.slice(0, number)
+    }
+
+    console.log(`append ${number}`, this.bays)
   }
 
   update() {
