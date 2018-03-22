@@ -1,8 +1,8 @@
-import classes from "./app.css";
+import classes from "./index.css";
 import { h, render } from 'preact';
 import Scene from './scene';
-import GithubCorner from './github_corner';
-import Stats from './stats';
+import GithubCorner from './ui/github_corner';
+import Stats from './ui/stats';
 
 render((
 	<div>
