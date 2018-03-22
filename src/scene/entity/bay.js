@@ -4,14 +4,11 @@ import Polygon from './polygon';
 import { extrudePoints } from '../utils';
 import { normalToString } from '../utils';
 import { curriedOffset } from "../../clipper";
-import { defaultMaterial } from "../materials";
+import { defaultMaterial, edgeMaterial } from "../materials";
 
-export default class Bay extends THREE.Mesh {
+export default class Bay {
 
   constructor(entity, geometry=undefined) {
-    super();
-
-    this.entity = entity;
 
     this.length = 1.2;
     this.width = 4;
@@ -29,8 +26,16 @@ export default class Bay extends THREE.Mesh {
     if (geometry) {
       this.geometry = geometry;
     } else {
-      this.geometry = extrudePoints(1.2, this.profile, [curriedOffset(-0.286, this.profile)]);
+      this.geometry = extrudePoints(1.2, this.profile);//, [curriedOffset(-0.286, this.profile)]);
     }
+
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+
+    const edgesGeometry = new THREE.EdgesGeometry(this.geometry, 1);
+    const lineSegments = new THREE.LineSegments(edgesGeometry, edgeMaterial);
+
+    this.mesh.add(lineSegments);
+    this.mesh.entity = entity;
 
     this.polygons = [];
     this.makePolygons();

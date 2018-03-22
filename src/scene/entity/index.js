@@ -9,8 +9,8 @@ export default class Entity extends THREE.Object3D {
 
     this.bays.forEach( (bayIndex, index) => {
       const bay = new Bay(this);
-      bay.translateZ(bay.length * index);
-      this.add(bay);
+      bay.mesh.translateZ(bay.length * index);
+      this.add(bay.mesh);
     });
 
     this.prepend = this.prepend.bind(this);
@@ -24,9 +24,9 @@ export default class Entity extends THREE.Object3D {
       if (this.bays.length > 1) this.bays = this.bays.slice(-number);
     }
 
-    const bay = new Bay(this);
-    bay.translateZ(bay.length * -1);
-    this.add(bay);
+    // const bay = new Bay(this);
+    // bay.mesh.translateZ(bay.length * -1);
+    // this.add(bay.mesh);
 
     console.log(`prepend ${number}`, this.bays)
   }

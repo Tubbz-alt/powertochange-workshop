@@ -61,7 +61,7 @@ export default class Scene extends Component {
 
     var ground = new THREE.GridHelper(20, 20, 0xDDDDDD, 0xEEEEEE);
     ground.rotation.x = -Math.PI;
-    ground.position.set(0, 0, 0);
+    ground.position.set(0, -0.005, 0);
     this.scene.add(ground);
 
     this.plane = new THREE.Plane(new THREE.Vector3(1, 1, 0.2), 0);
@@ -131,17 +131,20 @@ export default class Scene extends Component {
     const wallMouseDown$ =
       faceMouseDown$
         .filter( ([event, intersections]) => {
+          const {face} = intersections.find(i => i.face);
+          console.log(face);
           return (
-            intersections[0].face.normal.x === 1 ||
-            intersections[0].face.normal.x === -1
+            face.normal.x === 1 ||
+            face.normal.x === -1
           );
         });
 
     const endWallMouseDown$ =
       faceMouseDown$
         .filter( ([event, intersections]) => {
+          const {face} = intersections.find(i => i.face);
           return (
-            intersections[0].face.normal.z === 1 || intersections[0].face.normal.z === -1
+            face.normal.z === 1 || face.normal.z === -1
           );
         })
         .do( ([event, intersections]) => {
