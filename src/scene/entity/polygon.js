@@ -33,6 +33,11 @@ export default class Polygon {
     return [...this.faces][0].normal.clone().normalize();
   }
 
+  get centroid() {
+    const vertices = [...this.vertices];
+    return vertices[0].clone().lerp(vertices[2], 0.5);
+  }
+
   extrude(distance) {
     this.vertices.forEach(vector => {
       vector.add(

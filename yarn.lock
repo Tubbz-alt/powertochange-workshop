@@ -941,6 +941,16 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
+clipper-js@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/clipper-js/-/clipper-js-1.0.2.tgz#e44891dde6542cc7d0bcc6ef9684d45905714893"
+  dependencies:
+    clipper-lib "^6.2.1"
+
+clipper-lib@^6.2.1:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/clipper-lib/-/clipper-lib-6.2.1.tgz#266d8ec7575c589f05f23e9cd003de50e23117b6"
+
 clone@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.3.tgz#298d7e2231660f40c003c2ed3140decf3f53085f"

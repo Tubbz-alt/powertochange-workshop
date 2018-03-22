@@ -1,34 +1,20 @@
 import * as THREE from 'three';
-import Polygon from './polygon';
-import groupBy from 'lodash/groupBy';
-import { normalToString, shapeFromPoints, extrudePoints } from '../utils';
+import Bay from "./bay";
 
-const BAY_LENGTH = 1.2;
-
-export default class Entity extends THREE.Mesh {
+export default class Entity extends THREE.Object3D {
   constructor() {
     super();
-    this.polygons = [];
-
-    this.width = 4;
-
-    this.profile = [
-      [-this.width/2, 0],
-      [this.width/2, 0],
-      [this.width/2, 2],
-      [0, 3.7],
-      [-this.width/2, 2]
-    ];
-
-    this.geometry = extrudePoints(1.2, this.profile);
-    this.material = new THREE.MeshNormalMaterial();
 
     this.bays = [0];
 
+    this.bays.forEach( (bayIndex, index) => {
+      const bay = new Bay(this);
+      bay.translateZ(bay.length * index);
+      this.add(bay);
+    });
+
     this.prepend = this.prepend.bind(this);
     this.append = this.append.bind(this);
-
-    this.makePolygons();
   }
 
   prepend(number=1) {
@@ -37,6 +23,10 @@ export default class Entity extends THREE.Mesh {
     } else {
       if (this.bays.length > 1) this.bays = this.bays.slice(-number);
     }
+
+    const bay = new Bay(this);
+    bay.translateZ(bay.length * -1);
+    this.add(bay);
 
     console.log(`prepend ${number}`, this.bays)
   }
@@ -51,21 +41,7 @@ export default class Entity extends THREE.Mesh {
     console.log(`append ${number}`, this.bays)
   }
 
-  update() {
-    this.geometry.boundingBox = null;
-    this.geometry.boundingSphere = null;
-    this.geometry.verticesNeedUpdate = true;
-  }
-
-  makePolygons() {
-    const grouped = groupBy(this.geometry.faces, normalToString);
-    this.polygons = Object.values(grouped).map(polygon =>
-      new Polygon(this.geometry, polygon)
-    );
-    // console.log(this.polygons);
-  }
-
-  get footprint() {
-    return (this.bays.length * BAY_LENGTH) * this.width;
-  }
+  // get footprint() {
+  //   return (this.bays.length * BAY_LENGTH) * this.width;
+  // }
 }

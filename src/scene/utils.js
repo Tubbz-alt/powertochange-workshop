@@ -23,7 +23,7 @@ export function checkForIntersection(event) {
     this.props.height
   );
   this.raycaster.setFromCamera({x, y}, this.camera);
-  return this.raycaster.intersectObject(this.model);
+  return this.raycaster.intersectObject(this.entity, true);
 }
 
 export function shapeFromPoints(points) {

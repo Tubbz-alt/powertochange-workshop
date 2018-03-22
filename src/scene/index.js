@@ -6,6 +6,10 @@ import Entity from "./entity"
 import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./utils";
 import Window, { addWindow } from "./entity/window";
 
+
+// var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+var material = new THREE.MeshBasicMaterial( { color: 'yellow' } );
+
 export default class Scene extends Component {
 
   constructor(props) {
@@ -21,6 +25,9 @@ export default class Scene extends Component {
     const { width=400, height=400, bgColor=0xcccccc } = this.props;
 
     this.scene = new THREE.Scene();
+
+    this.lines = new THREE.Line(new THREE.Geometry(), material);
+    this.scene.add(this.lines);
 
     this.renderer.setClearColor(bgColor);
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -51,8 +58,8 @@ export default class Scene extends Component {
       }));
     });
 
-    this.model = new Entity();
-    this.scene.add(this.model);
+    this.entity = new Entity();
+    this.scene.add(this.entity);
 
     var ground = new THREE.GridHelper(20, 20, 0xDDDDDD, 0xEEEEEE);
     ground.rotation.x = -Math.PI;
@@ -125,12 +132,12 @@ export default class Scene extends Component {
 
     const wallMouseDown$ =
       faceMouseDown$
-        .filter( ([event, intersections]) => {
-          return (
-            intersections[0].face.normal.x === 1 ||
-            intersections[0].face.normal.x === -1
-          );
-        });
+        // .filter( ([event, intersections]) => {
+        //   return (
+        //     intersections[0].face.normal.x === 1 ||
+        //     intersections[0].face.normal.x === -1
+        //   );
+        // });
 
     const endWallMouseDown$ =
       faceMouseDown$
@@ -147,10 +154,11 @@ export default class Scene extends Component {
           const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
 
           if (face.normal.z === 1) {
-            intersection.object.append(amount);
+            intersection.object.entity.append(amount);
             // polygon.append(amount);
           } else {
-            intersection.object.prepend(amount);
+            console.log('prepend')
+            intersection.object.entity.prepend(amount);
             // polygon.prepend(amount);
           }
           // console.log(face.normal)
@@ -163,6 +171,11 @@ export default class Scene extends Component {
           const intersection = is = intersections[0];
           // const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
           const { polygon } = intersection.face;
+
+          const geometry = new THREE.Geometry();
+          this.lines.geometry = geometry;
+          geometry.vertices = [...polygon.vertices];
+          this.lines.geometry.verticesNeedUpdate = true;
           // polygon.extrude(1 * direction);
 
           // this.plane.setFromNormalAndCoplanarPoint(
@@ -179,6 +192,8 @@ export default class Scene extends Component {
           );
           this.raycaster.ray.intersectPlane(this.plane, startPt);
           // console.log(origVertices);
+
+          console.log([...polygon.vertices]);
         })
         // .switchMapTo(mouseMove$)
         .takeUntil(mouseUp$)

@@ -20,6 +20,7 @@
     "rimraf": "^2.6.2"
   },
   "dependencies": {
+    "clipper-js": "^1.0.2",
     "lodash": "^4.17.5",
     "preact": "^8.2.7",
     "preact-compat": "^3.18.0",

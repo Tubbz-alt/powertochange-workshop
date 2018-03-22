@@ -10,7 +10,11 @@ export function addWindow([{ buttons }, intersections]) {
   } else {
     polygon.window = new Window();
     // console.log(intersection.point);
+
+
     polygon.window.position.copy(intersection.point);
+    // polygon.window.position.copy(polygon.centroid);
+
     polygon.window.lookAt(
       intersection.point.clone().add(intersection.face.normal)
     );
