@@ -59,11 +59,6 @@ export default class Scene extends Component {
     this.entity = new Entity();
     this.scene.add(this.entity);
 
-    var ground = new THREE.GridHelper(20, 20, 0xDDDDDD, 0xEEEEEE);
-    ground.rotation.x = -Math.PI;
-    ground.position.set(0, -0.005, 0);
-    this.scene.add(ground);
-
     this.plane = new THREE.Plane(new THREE.Vector3(1, 1, 0.2), 0);
     // this.planeHelper = new THREE.PlaneHelper(this.plane, 10, 0xffff00);
     // this.scene.add(this.planeHelper);
