@@ -130,12 +130,12 @@ export default class Scene extends Component {
 
     const wallMouseDown$ =
       faceMouseDown$
-        // .filter( ([event, intersections]) => {
-        //   return (
-        //     intersections[0].face.normal.x === 1 ||
-        //     intersections[0].face.normal.x === -1
-        //   );
-        // });
+        .filter( ([event, intersections]) => {
+          return (
+            intersections[0].face.normal.x === 1 ||
+            intersections[0].face.normal.x === -1
+          );
+        });
 
     const endWallMouseDown$ =
       faceMouseDown$
@@ -148,18 +148,13 @@ export default class Scene extends Component {
           const intersection = intersections[0];
           const { face } = intersection;
           const { polygon } = face;
-
           const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
 
           if (face.normal.z === 1) {
             intersection.object.entity.append(amount);
-            // polygon.append(amount);
           } else {
-            console.log('prepend')
             intersection.object.entity.prepend(amount);
-            // polygon.prepend(amount);
           }
-          // console.log(face.normal)
         });
 
     const dragExtrude$ =
