@@ -145,6 +145,19 @@ export default class Scene extends Component {
                                   return (
                                     intersections[0].face.normal.z === 1 || intersections[0].face.normal.z === -1
                                   );
+                                })
+                                .do( ([event, intersections]) => {
+                                  const { face } = intersections[0];
+                                  const { polygon } = face;
+
+                                  const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
+
+                                  if (face.normal.z === 1) {
+                                    polygon.append(amount);
+                                  } else {
+                                    polygon.prepend(amount);
+                                  }
+                                  console.log(face.normal)
                                 });
 
 

@@ -19,9 +19,11 @@ export default class Polygon {
   }
 
   prepend(number=1) {
+    console.log(`prepend ${number}`)
   }
 
   append(number=1) {
+    console.log(`append ${number}`)
   }
 
   addFace(face) {
