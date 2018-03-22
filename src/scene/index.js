@@ -2,7 +2,6 @@ import { h, Component } from 'preact';
 import * as THREE from "three";
 const OrbitControls = require("three-orbit-controls")(THREE);
 import { Observable } from "rxjs";
-// import Model from "./model";
 import Entity from "./entity"
 import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./utils";
 import Window, { addWindow } from "./entity/window";
@@ -13,6 +12,7 @@ export default class Scene extends Component {
     super(props);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+
     this.render3D = this.render3D.bind(this);
     this.addEvents = this.addEvents.bind(this);
   }
@@ -74,132 +74,145 @@ export default class Scene extends Component {
     let origVertices = [];
     let vertices = [];
 
-    const wheel$ = Observable
-                    .fromEvent(this.renderer.domElement, 'wheel');
+    const wheel$ =
+      Observable
+        .fromEvent(this.renderer.domElement, 'wheel');
 
-    const mouseMove$ = Observable
-                        .fromEvent(this.renderer.domElement, 'mousemove')
-                        .share();
+    const mouseMove$ =
+      Observable
+        .fromEvent(this.renderer.domElement, 'mousemove')
+        .share();
 
-    const mouseUp$ = Observable
-                        .fromEvent(document, 'mouseup')
-                        .do(_ => this.controls.enabled = true)
-                        .share();
+    const mouseUp$ =
+      Observable
+        .fromEvent(document, 'mouseup')
+        .do(_ => this.controls.enabled = true)
+        .share();
 
-    const mouseDown$ = Observable
-                        .fromEvent(this.renderer.domElement, 'mousedown')
-                        .share();
+    const mouseDown$ =
+      Observable
+        .fromEvent(this.renderer.domElement, 'mousedown')
+        .share();
 
-    const mouseDownAndMoving$ = mouseDown$
-                                  .switchMapTo(mouseMove$)
-                                  .takeUntil(mouseUp$)
-                                  .repeat();
+    const mouseDownAndMoving$ =
+      mouseDown$
+        .switchMapTo(mouseMove$)
+        .takeUntil(mouseUp$)
+        .repeat();
 
-    const intersections$ = Observable.merge(mouseMove$, mouseUp$)
-                            .throttleTime(20)
-                            .map(checkForIntersection.bind(this))
-                            .share();
+    const intersections$ =
+      Observable.merge(mouseMove$, mouseUp$)
+        .throttleTime(20)
+        .map(checkForIntersection.bind(this))
+        .share();
 
-    const distinctIntersections$ = intersections$
-                                      .distinctUntilChanged((x, y) => {
-                                        if (x.length > 0 && y.length > 0) {
-                                          return x[0].faceIndex === y[0].faceIndex;
-                                        } else {
-                                          return (x.length === y.length)
-                                        }
-                                      });
+    const distinctIntersections$ =
+      intersections$
+        .distinctUntilChanged((x, y) => {
+          if (x.length > 0 && y.length > 0) {
+            return x[0].faceIndex === y[0].faceIndex;
+          } else {
+            return (x.length === y.length)
+          }
+        });
 
-    const faceMouseDown$ = mouseDown$
-                      .withLatestFrom(intersections$)
-                      .filter( ([event, intersections]) => intersections.length > 0)
-                      .do(_ => this.controls.enabled = false)
-                      .share();
+    const faceMouseDown$ =
+      mouseDown$
+        .withLatestFrom(intersections$)
+        .filter( ([event, intersections]) => intersections.length > 0)
+        .do(_ => this.controls.enabled = false)
+        .share();
 
-    const wallMouseDown$ = faceMouseDown$
-                              .filter( ([event, intersections]) => {
-                                return (
-                                  intersections[0].face.normal.x === 1 ||
-                                  intersections[0].face.normal.x === -1
-                                );
-                              });
+    const wallMouseDown$ =
+      faceMouseDown$
+        .filter( ([event, intersections]) => {
+          return (
+            intersections[0].face.normal.x === 1 ||
+            intersections[0].face.normal.x === -1
+          );
+        });
 
-    const endWallMouseDown$ = faceMouseDown$
-                                .filter( ([event, intersections]) => {
-                                  return (
-                                    intersections[0].face.normal.z === 1 || intersections[0].face.normal.z === -1
-                                  );
-                                })
-                                .do( ([event, intersections]) => {
-                                  const intersection = intersections[0];
-                                  const { face } = intersection;
-                                  const { polygon } = face;
+    const endWallMouseDown$ =
+      faceMouseDown$
+        .filter( ([event, intersections]) => {
+          return (
+            intersections[0].face.normal.z === 1 || intersections[0].face.normal.z === -1
+          );
+        })
+        .do( ([event, intersections]) => {
+          const intersection = intersections[0];
+          const { face } = intersection;
+          const { polygon } = face;
 
-                                  const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
+          const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
 
-                                  if (face.normal.z === 1) {
-                                    intersection.object.append(amount);
-                                    // polygon.append(amount);
-                                  } else {
-                                    intersection.object.prepend(amount);
-                                    // polygon.prepend(amount);
-                                  }
-                                  // console.log(face.normal)
-                                });
+          if (face.normal.z === 1) {
+            intersection.object.append(amount);
+            // polygon.append(amount);
+          } else {
+            intersection.object.prepend(amount);
+            // polygon.prepend(amount);
+          }
+          // console.log(face.normal)
+        });
 
-    const dragExtrude$ = wallMouseDown$
-                          .do(addWindow.bind(this))
-                          .do( ([{ buttons }, intersections]) => {
-                            const intersection = is = intersections[0];
-                            // const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
-                            const { polygon } = intersection.face;
-                            // polygon.extrude(1 * direction);
+    const dragExtrude$ =
+      wallMouseDown$
+        .do(addWindow.bind(this))
+        .do( ([{ buttons }, intersections]) => {
+          const intersection = is = intersections[0];
+          // const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
+          const { polygon } = intersection.face;
+          // polygon.extrude(1 * direction);
 
-                            // this.plane.setFromNormalAndCoplanarPoint(
-                            //   intersection.face.normal,
-                            //   intersection.point.clone()
-                            // );
-                            vertices = Array.from(is.face.polygon.vertices);
-                            origVertices = vertices.map(v => v.clone());
+          // this.plane.setFromNormalAndCoplanarPoint(
+          //   intersection.face.normal,
+          //   intersection.point.clone()
+          // );
+          vertices = Array.from(is.face.polygon.vertices);
+          origVertices = vertices.map(v => v.clone());
 
-                            this.plane.setFromCoplanarPoints(
-                              intersection.point.clone(),
-                              intersection.point.clone().add(new THREE.Vector3(0,1,0)),
-                              intersection.point.clone().add(intersection.face.normal.normalize())
-                            );
-                            this.raycaster.ray.intersectPlane(this.plane, startPt);
-                            // console.log(origVertices);
-                          })
-                          // .switchMapTo(mouseMove$)
-                          .takeUntil(mouseUp$)
-                          .repeat()
-                          .do(a => {
-                            if (this.raycaster.ray.intersectPlane(this.plane, planeIntersection)) {
-                              const change = planeIntersection.clone().sub(startPt);
-                              const b = change.multiply(is.face.normal.normalize());
+          this.plane.setFromCoplanarPoints(
+            intersection.point.clone(),
+            intersection.point.clone().add(new THREE.Vector3(0,1,0)),
+            intersection.point.clone().add(intersection.face.normal.normalize())
+          );
+          this.raycaster.ray.intersectPlane(this.plane, startPt);
+          // console.log(origVertices);
+        })
+        // .switchMapTo(mouseMove$)
+        .takeUntil(mouseUp$)
+        .repeat()
+        .do(a => {
+          if (this.raycaster.ray.intersectPlane(this.plane, planeIntersection)) {
+            const change = planeIntersection.clone().sub(startPt);
+            const b = change.multiply(is.face.normal.normalize());
 
-                              vertices.forEach( (vertex, index) => {
-                                vertex.copy(
-                                  origVertices[index].clone().add(b)
-                                );
-                              });
+            vertices.forEach( (vertex, index) => {
+              vertex.copy(
+                origVertices[index].clone().add(b)
+              );
+            });
 
-                              is.object.update();
-                            }
-                          });
+            is.object.update();
+          }
+        });
 
-    const clickExtrude$ = faceMouseDown$
-                            .do( ([{ buttons }, intersections]) => {
-                              const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
-                              const { polygon } = intersections[0].face;
-                              polygon.extrude(1 * direction);
-                            });
+    const clickExtrude$ =
+      faceMouseDown$
+        .do( ([{ buttons }, intersections]) => {
+          const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
+          const { polygon } = intersections[0].face;
+          polygon.extrude(1 * direction);
+        });
 
-    this.render$ = Observable
-                      .merge(wheel$, mouseUp$, mouseDownAndMoving$, dragExtrude$, endWallMouseDown$)
-                      .throttleTime(20)
-                      .delay(10)
-                      .startWith(true)
-                      .subscribe(_ => requestAnimationFrame(this.render3D));
+    this.render$ =
+      Observable
+        .merge(wheel$, mouseUp$, mouseDownAndMoving$, dragExtrude$, endWallMouseDown$)
+        .throttleTime(20)
+        .delay(10)
+        .startWith(true)
+        .subscribe(_ => requestAnimationFrame(this.render3D));
   }
 
   componentWillUnmount() {
@@ -207,7 +220,6 @@ export default class Scene extends Component {
   }
 
   render3D() {
-    // console.log('render');
     this.renderer.render(this.scene, this.camera);
   }
 
