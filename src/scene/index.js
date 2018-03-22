@@ -5,10 +5,10 @@ import { Observable } from "rxjs";
 import Entity from "./entity"
 import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./utils";
 import Window, { addWindow } from "./entity/window";
-
+import { highlightMaterial } from "./materials";
 
 // var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-var material = new THREE.MeshBasicMaterial( { color: 'yellow' } );
+// var material = new THREE.MeshBasicMaterial( { color: 'yellow' } );
 
 export default class Scene extends Component {
 
@@ -26,7 +26,7 @@ export default class Scene extends Component {
 
     this.scene = new THREE.Scene();
 
-    this.lines = new THREE.Line(new THREE.Geometry(), material);
+    this.lines = new THREE.Line(new THREE.Geometry(), highlightMaterial);
     this.scene.add(this.lines);
 
     this.renderer.setClearColor(bgColor);

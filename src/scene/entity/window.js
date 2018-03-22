@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { windowMaterial } from "../materials";
 
 export function addWindow([{ buttons }, intersections]) {
   const intersection = intersections[0];
@@ -35,7 +36,7 @@ export default class Window extends THREE.Mesh {
     this.height = 1;
     const depth = 0.1;
     this.name = 'window';
-    this.material = new THREE.MeshBasicMaterial({ color: 'black' });
+    this.material = windowMaterial;
     this.geometry = new THREE.BoxGeometry(this.width, this.height, depth);
     this.geometry.translate(0, 0, depth/2);
 

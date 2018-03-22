@@ -4,8 +4,7 @@ import groupBy from 'lodash/groupBy';
 import Polygon from './polygon';
 import { normalToString } from '../utils';
 import { curriedOffset } from "../../clipper";
-
-const material = new THREE.MeshNormalMaterial({ opacity: 0.4, transparent: true });
+import { defaultMaterial } from "../materials";
 
 export default class Bay extends THREE.Mesh {
 
@@ -25,7 +24,7 @@ export default class Bay extends THREE.Mesh {
       [-this.width/2, 2]
     ];
 
-    this.material = material;
+    this.material = defaultMaterial;
 
     if (geometry) {
       this.geometry = geometry;
