@@ -68,12 +68,6 @@ export default class Scene extends Component {
 
   addEvents() {
 
-    let is;
-    const planeIntersection = new THREE.Vector3();
-    const startPt = new THREE.Vector3();
-    let origVertices = [];
-    let vertices = [];
-
     // mouse actions
 
     const wheel$ =
@@ -157,75 +151,36 @@ export default class Scene extends Component {
           );
         })
         .do(_ => console.log('end wall'));
-        // .do( ([event, intersections]) => {
-        //   const intersection = intersections[0];
-        //   const { face } = intersection;
-        //   const { polygon } = face;
-        //   const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
 
-        //   if (face.normal.z === 1) {
-        //     intersection.object.entity.append(amount);
-        //   } else {
-        //     intersection.object.entity.prepend(amount);
-        //   }
-        // });
+    // house actions
 
-    // const dragExtrude$ =
-    //   wallMouseDown$
-    //     .do(addWindow.bind(this))
-    //     .do( ([{ buttons }, intersections]) => {
-    //       const intersection = is = intersections[0];
-    //       // const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
-    //       const { polygon } = intersection.face;
+    const wallDrag$ =
+      wallMouseDown$
+        .switchMapTo(mouseMove$)
+        .takeUntil(mouseUp$)
+        .do(_ => console.log('dragging wall'))
+        .repeat();
 
-    //       const geometry = new THREE.Geometry();
-    //       this.lines.geometry = geometry;
-    //       geometry.vertices = [...polygon.vertices];
-    //       this.lines.geometry.verticesNeedUpdate = true;
-    //       // polygon.extrude(1 * direction);
-
-    //       // this.plane.setFromNormalAndCoplanarPoint(
-    //       //   intersection.face.normal,
-    //       //   intersection.point.clone()
-    //       // );
-    //       vertices = Array.from(is.face.polygon.vertices);
-    //       origVertices = vertices.map(v => v.clone());
-
-    //       this.plane.setFromCoplanarPoints(
-    //         intersection.point.clone(),
-    //         intersection.point.clone().add(new THREE.Vector3(0,1,0)),
-    //         intersection.point.clone().add(intersection.face.normal.normalize())
-    //       );
-    //       this.raycaster.ray.intersectPlane(this.plane, startPt);
-    //       // console.log(origVertices);
-
-    //       console.log([...polygon.vertices]);
-    //     })
-    //     // .switchMapTo(mouseMove$)
-    //     .takeUntil(mouseUp$)
-    //     .repeat()
-    //     .do(a => {
-    //       if (this.raycaster.ray.intersectPlane(this.plane, planeIntersection)) {
-    //         const change = planeIntersection.clone().sub(startPt);
-    //         const b = change.multiply(is.face.normal.normalize());
-
-    //         vertices.forEach( (vertex, index) => {
-    //           vertex.copy(
-    //             origVertices[index].clone().add(b)
-    //           );
-    //         });
-
-    //         console.log(is);
-
-    //         is.object.update();
-    //       }
-    //     });
+    const endWallDrag$ =
+      endWallMouseDown$
+        .switchMapTo(mouseMove$)
+        .takeUntil(mouseUp$)
+        .do(_ => console.log('dragging endwall'))
+        .repeat();
 
     // render action
 
     this.render$ =
       Observable
-        .merge(wheel$, mouseDownAndMoving$, mouseUp$, wallMouseDown$, endWallMouseDown$)
+        .merge(
+          wheel$,
+          mouseDownAndMoving$,
+          mouseUp$,
+          // wallMouseDown$,
+          // endWallMouseDown$,
+          wallDrag$,
+          endWallDrag$
+        )
         .throttleTime(20)
         .delay(10)
         .startWith(true)
