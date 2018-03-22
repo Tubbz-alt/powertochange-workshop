@@ -24,9 +24,9 @@ export default class Entity extends THREE.Object3D {
       if (this.bays.length > 1) this.bays = this.bays.slice(-number);
     }
 
-    // const bay = new Bay(this);
-    // bay.mesh.translateZ(bay.length * -1);
-    // this.add(bay.mesh);
+    const bay = new Bay(this);
+    bay.mesh.translateZ(bay.length * -1);
+    this.add(bay.mesh);
 
     console.log(`prepend ${number}`, this.bays)
   }

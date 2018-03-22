@@ -5,8 +5,8 @@ const OrbitControls = require("three-orbit-controls")(THREE);
 
 import Entity from "./entity"
 import Window, { addWindow } from "./entity/window";
-import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./utils";
-import { highlightMaterial } from "./materials";
+import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./lib/utils";
+import { highlightMaterial } from "./lib/materials";
 
 export default class Scene extends Component {
 
@@ -74,6 +74,8 @@ export default class Scene extends Component {
     let origVertices = [];
     let vertices = [];
 
+    // mouse actions
+
     const wheel$ =
       Observable
         .fromEvent(this.renderer.domElement, 'wheel');
@@ -100,6 +102,8 @@ export default class Scene extends Component {
         .takeUntil(mouseUp$)
         .repeat();
 
+    // threejs intersections actions
+
     const intersections$ =
       Observable.merge(mouseMove$, mouseUp$)
         .throttleTime(20)
@@ -123,16 +127,26 @@ export default class Scene extends Component {
         .do(_ => this.controls.enabled = false)
         .share();
 
+    const clickExtrude$ =
+      faceMouseDown$
+        .do( ([{ buttons }, intersections]) => {
+          const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
+          const { polygon } = intersections[0].face;
+          polygon.extrude(1 * direction);
+        });
+
+    // house specific actions
+
     const wallMouseDown$ =
       faceMouseDown$
         .filter( ([event, intersections]) => {
           const {face} = intersections.find(i => i.face);
-          console.log(face);
           return (
             face.normal.x === 1 ||
             face.normal.x === -1
           );
-        });
+        })
+        .do(_ => console.log('wall'));
 
     const endWallMouseDown$ =
       faceMouseDown$
@@ -142,79 +156,76 @@ export default class Scene extends Component {
             face.normal.z === 1 || face.normal.z === -1
           );
         })
-        .do( ([event, intersections]) => {
-          const intersection = intersections[0];
-          const { face } = intersection;
-          const { polygon } = face;
-          const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
+        .do(_ => console.log('end wall'));
+        // .do( ([event, intersections]) => {
+        //   const intersection = intersections[0];
+        //   const { face } = intersection;
+        //   const { polygon } = face;
+        //   const amount = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
 
-          if (face.normal.z === 1) {
-            intersection.object.entity.append(amount);
-          } else {
-            intersection.object.entity.prepend(amount);
-          }
-        });
+        //   if (face.normal.z === 1) {
+        //     intersection.object.entity.append(amount);
+        //   } else {
+        //     intersection.object.entity.prepend(amount);
+        //   }
+        // });
 
-    const dragExtrude$ =
-      wallMouseDown$
-        .do(addWindow.bind(this))
-        .do( ([{ buttons }, intersections]) => {
-          const intersection = is = intersections[0];
-          // const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
-          const { polygon } = intersection.face;
+    // const dragExtrude$ =
+    //   wallMouseDown$
+    //     .do(addWindow.bind(this))
+    //     .do( ([{ buttons }, intersections]) => {
+    //       const intersection = is = intersections[0];
+    //       // const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
+    //       const { polygon } = intersection.face;
 
-          const geometry = new THREE.Geometry();
-          this.lines.geometry = geometry;
-          geometry.vertices = [...polygon.vertices];
-          this.lines.geometry.verticesNeedUpdate = true;
-          // polygon.extrude(1 * direction);
+    //       const geometry = new THREE.Geometry();
+    //       this.lines.geometry = geometry;
+    //       geometry.vertices = [...polygon.vertices];
+    //       this.lines.geometry.verticesNeedUpdate = true;
+    //       // polygon.extrude(1 * direction);
 
-          // this.plane.setFromNormalAndCoplanarPoint(
-          //   intersection.face.normal,
-          //   intersection.point.clone()
-          // );
-          vertices = Array.from(is.face.polygon.vertices);
-          origVertices = vertices.map(v => v.clone());
+    //       // this.plane.setFromNormalAndCoplanarPoint(
+    //       //   intersection.face.normal,
+    //       //   intersection.point.clone()
+    //       // );
+    //       vertices = Array.from(is.face.polygon.vertices);
+    //       origVertices = vertices.map(v => v.clone());
 
-          this.plane.setFromCoplanarPoints(
-            intersection.point.clone(),
-            intersection.point.clone().add(new THREE.Vector3(0,1,0)),
-            intersection.point.clone().add(intersection.face.normal.normalize())
-          );
-          this.raycaster.ray.intersectPlane(this.plane, startPt);
-          // console.log(origVertices);
+    //       this.plane.setFromCoplanarPoints(
+    //         intersection.point.clone(),
+    //         intersection.point.clone().add(new THREE.Vector3(0,1,0)),
+    //         intersection.point.clone().add(intersection.face.normal.normalize())
+    //       );
+    //       this.raycaster.ray.intersectPlane(this.plane, startPt);
+    //       // console.log(origVertices);
 
-          console.log([...polygon.vertices]);
-        })
-        // .switchMapTo(mouseMove$)
-        .takeUntil(mouseUp$)
-        .repeat()
-        .do(a => {
-          if (this.raycaster.ray.intersectPlane(this.plane, planeIntersection)) {
-            const change = planeIntersection.clone().sub(startPt);
-            const b = change.multiply(is.face.normal.normalize());
+    //       console.log([...polygon.vertices]);
+    //     })
+    //     // .switchMapTo(mouseMove$)
+    //     .takeUntil(mouseUp$)
+    //     .repeat()
+    //     .do(a => {
+    //       if (this.raycaster.ray.intersectPlane(this.plane, planeIntersection)) {
+    //         const change = planeIntersection.clone().sub(startPt);
+    //         const b = change.multiply(is.face.normal.normalize());
 
-            vertices.forEach( (vertex, index) => {
-              vertex.copy(
-                origVertices[index].clone().add(b)
-              );
-            });
+    //         vertices.forEach( (vertex, index) => {
+    //           vertex.copy(
+    //             origVertices[index].clone().add(b)
+    //           );
+    //         });
 
-            is.object.update();
-          }
-        });
+    //         console.log(is);
 
-    const clickExtrude$ =
-      faceMouseDown$
-        .do( ([{ buttons }, intersections]) => {
-          const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
-          const { polygon } = intersections[0].face;
-          polygon.extrude(1 * direction);
-        });
+    //         is.object.update();
+    //       }
+    //     });
+
+    // render action
 
     this.render$ =
       Observable
-        .merge(wheel$, mouseUp$, mouseDownAndMoving$, dragExtrude$, endWallMouseDown$)
+        .merge(wheel$, mouseDownAndMoving$, mouseUp$, wallMouseDown$, endWallMouseDown$)
         .throttleTime(20)
         .delay(10)
         .startWith(true)
@@ -226,6 +237,7 @@ export default class Scene extends Component {
   }
 
   render3D() {
+    // console.log('render');
     this.renderer.render(this.scene, this.camera);
   }
 

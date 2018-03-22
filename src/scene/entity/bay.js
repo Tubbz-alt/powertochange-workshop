@@ -1,10 +1,9 @@
 import * as THREE from "three";
 import groupBy from 'lodash/groupBy';
 import Polygon from './polygon';
-import { extrudePoints } from '../utils';
-import { normalToString } from '../utils';
-import { curriedOffset } from "../../clipper";
-import { defaultMaterial, edgeMaterial } from "../materials";
+import { extrudePoints, normalToString } from '../lib/utils';
+import { curriedOffset } from "../lib/clipper";
+import { defaultMaterial, edgeMaterial } from "../lib/materials";
 
 export default class Bay {
 
@@ -31,10 +30,9 @@ export default class Bay {
 
     this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-    const edgesGeometry = new THREE.EdgesGeometry(this.geometry, 1);
-    const lineSegments = new THREE.LineSegments(edgesGeometry, edgeMaterial);
-
-    this.mesh.add(lineSegments);
+    // const edgesGeometry = new THREE.EdgesGeometry(this.geometry, 1);
+    // const lineSegments = new THREE.LineSegments(edgesGeometry, edgeMaterial);
+    // this.mesh.add(lineSegments);
     this.mesh.entity = entity;
 
     this.polygons = [];

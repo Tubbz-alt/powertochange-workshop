@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { windowMaterial } from "../materials";
+import { windowMaterial } from "../lib/materials";
 
 export function addWindow([{ buttons }, intersections]) {
   const intersection = intersections[0];
@@ -10,9 +10,6 @@ export function addWindow([{ buttons }, intersections]) {
     polygon.window = undefined;
   } else {
     polygon.window = new Window();
-    // console.log(intersection.point);
-
-
     polygon.window.position.copy(intersection.point);
     // polygon.window.position.copy(polygon.centroid);
 
@@ -22,11 +19,6 @@ export function addWindow([{ buttons }, intersections]) {
     // intersection.object.add(w);
     this.scene.add(polygon.window);
   }
-
-  // const a = new THREE.AxesHelper(10);
-  // a.lookAt( intersection.face.normal );
-  // a.position.copy(intersection.point);
-  // intersection.object.add(a);
 }
 
 export default class Window extends THREE.Mesh {
