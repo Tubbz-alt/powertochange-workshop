@@ -1,14 +1,12 @@
 import { h, Component } from 'preact';
+import { Observable } from "rxjs";
 import * as THREE from "three";
 const OrbitControls = require("three-orbit-controls")(THREE);
-import { Observable } from "rxjs";
-import Entity from "./entity"
-import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./utils";
-import Window, { addWindow } from "./entity/window";
-import { highlightMaterial } from "./materials";
 
-// var material = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-// var material = new THREE.MeshBasicMaterial( { color: 'yellow' } );
+import Entity from "./entity"
+import Window, { addWindow } from "./entity/window";
+import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./utils";
+import { highlightMaterial } from "./materials";
 
 export default class Scene extends Component {
 

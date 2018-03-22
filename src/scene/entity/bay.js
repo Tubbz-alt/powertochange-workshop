@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import { extrudePoints } from '../utils';
 import groupBy from 'lodash/groupBy';
 import Polygon from './polygon';
+import { extrudePoints } from '../utils';
 import { normalToString } from '../utils';
 import { curriedOffset } from "../../clipper";
 import { defaultMaterial } from "../materials";
