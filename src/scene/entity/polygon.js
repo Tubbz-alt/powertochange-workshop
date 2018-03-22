@@ -11,7 +11,17 @@ export default class Polygon {
     this.faces = new Set();
     this.geometry = geometry;
     this.extrudeSnap = extrudeSnap;
+    this.window = undefined;
     faces.forEach(this.addFace.bind(this));
+
+    this.prepend = this.prepend.bind(this);
+    this.append = this.append.bind(this);
+  }
+
+  prepend(number=1) {
+  }
+
+  append(number=1) {
   }
 
   addFace(face) {
