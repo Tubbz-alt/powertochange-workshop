@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 export const MouseButton = {
   PRIMARY: 1,
   SECONDARY: 2,
@@ -22,6 +24,19 @@ export function checkForIntersection(event) {
   );
   this.raycaster.setFromCamera({x, y}, this.camera);
   return this.raycaster.intersectObject(this.model);
+}
+
+export function shapeFromPoints(points) {
+  const shape = new THREE.Shape();
+  shape.moveTo(points[0][0], points[0][1]);
+  points.slice(1).forEach( ([x, y]) => shape.lineTo(x, y));
+  return shape;
+}
+
+export function extrudePoints(amount, points, holes=[]) {
+  const shape = shapeFromPoints(points);
+  shape.holes = holes.map(hole => shapeFromPoints(hole));
+  return new THREE.ExtrudeGeometry(shape, { amount, bevelEnabled: false });
 }
 
 function _clampVal(input) {

@@ -1,21 +1,7 @@
 import * as THREE from 'three';
 import Polygon from './polygon';
 import groupBy from 'lodash/groupBy';
-import { normalToString } from '../utils';
-
-
-function shapeFromPoints(points) {
-  const shape = new THREE.Shape();
-  shape.moveTo(points[0][0], points[0][1]);
-  points.slice(1).forEach( ([x, y]) => shape.lineTo(x, y));
-  return shape;
-}
-
-function extrudePoints(amount, points, holes=[]) {
-  const shape = shapeFromPoints(points);
-  shape.holes = holes.map(hole => shapeFromPoints(hole));
-  return new THREE.ExtrudeGeometry(shape, { amount, bevelEnabled: false });
-}
+import { normalToString, shapeFromPoints, extrudePoints } from '../utils';
 
 export default class Entity extends THREE.Mesh {
   constructor() {
