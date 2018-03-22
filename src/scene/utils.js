@@ -39,6 +39,14 @@ export function extrudePoints(amount, points, holes=[]) {
   return new THREE.ExtrudeGeometry(shape, { amount, bevelEnabled: false });
 }
 
+// export function centroid(geometry) {
+//   geometry.computeBoundingBox();
+//   var _centroid = new THREE.Vector3();
+//   _centroid.addVectors( geometry.boundingBox.min, geometry.boundingBox.max );
+//   _centroid.multiplyScalar( - 0.5 );
+//   _centroid.applyMatrix4( mesh.matrixWorld );
+// }
+
 function _clampVal(input) {
   if (input > 0 && input < 0.00000001) return 0;
   else if (input < 0 && input > -0.00000001) return 0;
