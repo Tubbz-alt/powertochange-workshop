@@ -36,7 +36,7 @@ export default class Scene extends Component {
 
     this.scene.add(new THREE.AmbientLight(0xFFFFFF, 1.1));
 
-    const pLight = new THREE.DirectionalLight(0xDDCEB1, 0.3);
+    const pLight = new THREE.PointLight(0xDDCEB1, 0.3);
     pLight.position.copy(new THREE.Vector3(8, 20, -10));
     pLight.lookAt(new THREE.Vector3(0, 2, 0))
     pLight.shadow.mapSize.width = 1024;
@@ -100,6 +100,8 @@ export default class Scene extends Component {
   addEvents() {
 
     // mouse actions
+
+    const interval$ = Observable.interval(3000);
 
     const wheel$ =
       Observable
@@ -245,9 +247,9 @@ export default class Scene extends Component {
           this.raycaster.ray.intersectPlane(this.plane, intersectionPt);
           is.face.polygon.vertices.forEach(vertex => {
             if (vertex.x > 0) {
-              vertex.x = Math.max(intersectionPt.x, 0.0001);
+              vertex.x = Math.min(Math.max(intersectionPt.x, 0.0001), 5);
             } else if (vertex.x < 0) {
-              vertex.x = Math.min(intersectionPt.x, -0.0001);
+              vertex.x = Math.max(Math.min(intersectionPt.x, -0.0001), -5);
             }
           });
           is.face.polygon.geometry.verticesNeedUpdate = true;
@@ -282,7 +284,8 @@ export default class Scene extends Component {
           // endWallMouseDown$,
           wallDrag$,
           endWallDrag$,
-          roofMouseDown$
+          roofMouseDown$,
+          interval$
         )
         .throttleTime(20)
         .delay(10)
