@@ -6,7 +6,7 @@ const OrbitControls = require("three-orbit-controls")(THREE);
 
 import Entity from "./entity"
 import Window, { addWindow } from "./entity/window";
-import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./lib/utils";
+import { MouseButton, getPosition, checkForIntersection, clampedNormal, get2DCoords } from "./lib/utils";
 import { highlightMaterial } from "./lib/materials";
 import { area } from "./lib/clipper";
 
@@ -14,8 +14,6 @@ export default class Scene extends Component {
 
   constructor(props) {
     super(props);
-
-    console.log("NEEEEEW")
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
@@ -207,11 +205,11 @@ export default class Scene extends Component {
           polygon.geometry.computeBoundingSphere();
 
           const endPoints = is.object.geometry.vertices.slice(0, is.object.geometry.vertices.length/2).map(v => ([v.x, v.y]));
-          const endWallArea = [area(endPoints), 'm²'];
+          // const endWallArea = [area(endPoints), 'm²'];
           const groundPoints = is.object.geometry.vertices.filter(v => v.y === 0);
           const length = [Math.abs(groundPoints[1].z - groundPoints[2].z), 'm'];
 
-          this.props.updateMetrics({ length, endWallArea });
+          this.props.updateMetrics({ length });
 
         })
         .do(_ => console.log('end wall'));
@@ -226,7 +224,11 @@ export default class Scene extends Component {
         .do(_ => {
           this.raycaster.ray.intersectPlane(this.plane, intersectionPt);
           is.face.polygon.vertices.forEach(vertex => {
-            vertex.x = intersectionPt.x;
+            if (vertex.x > 0) {
+              vertex.x = Math.max(intersectionPt.x, 0.0001);
+            } else if (vertex.x < 0) {
+              vertex.x = Math.min(intersectionPt.x, -0.0001);
+            }
           });
           is.face.polygon.geometry.verticesNeedUpdate = true;
 
@@ -256,7 +258,7 @@ export default class Scene extends Component {
           wheel$,
           mouseDownAndMoving$,
           mouseUp$,
-          // wallMouseDown$,
+          wallMouseDown$,
           // endWallMouseDown$,
           wallDrag$,
           endWallDrag$,
@@ -265,7 +267,43 @@ export default class Scene extends Component {
         .throttleTime(20)
         .delay(10)
         .startWith(true)
-        .subscribe(_ => requestAnimationFrame(this.render3D));
+        .do(this.updateLabelPositions.bind(this))
+        .subscribe(_ => {
+          requestAnimationFrame(this.render3D)
+        });
+  }
+
+  updateLabelPositions() {
+    const { geometry } = this.entity.children[0];
+    const groundVertices = geometry.vertices.filter(v => v.y < 1);
+
+    const things = {
+      width: [groundVertices[0], groundVertices[1]],
+      length: [groundVertices[1], groundVertices[3]],
+    };
+
+    this.camera.updateMatrix();
+    this.camera.updateMatrixWorld();
+
+    const o = Object.entries(things).reduce( (ob, [name, arr]) => {
+      const point = this.entity.children[0].localToWorld(
+        arr[0].clone().lerp(arr[1], 0.5)
+      );
+      const coords = get2DCoords(
+        point,
+        this.camera,
+        this.props.width,
+        this.props.height
+      );
+      ob[name] = {
+        x: coords.x - 20,
+        y: coords.y - 10
+      }
+      return ob;
+    }, {});
+
+    this.props.updateMeasurements(o);
+
   }
 
   componentWillUnmount() {

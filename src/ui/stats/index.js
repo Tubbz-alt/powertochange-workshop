@@ -33,10 +33,10 @@ export default function Stats({ metrics }) {
             <th>footprint</th>
             <td>{(metrics.width[0] * metrics.length[0]).toFixed(2)}m²</td>
           </tr>
-          <tr>
+          {/* <tr>
             <th>volume</th>
             <td>{(metrics.endWallArea[0] * metrics.length[0]).toFixed(2)}m³</td>
-          </tr>
+          </tr> */}
         </tbody>
       </table>
     </div>

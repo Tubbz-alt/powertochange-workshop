@@ -61,3 +61,15 @@ export function clampedNormal(normal) {
     _clampVal(normal.z)
   );
 }
+
+export function get2DCoords(
+  position,
+  camera,
+  width,
+  height
+) {
+  let vector = position.project(camera);
+  vector.x = (vector.x + 1) / 2 * width;
+  vector.y = -(vector.y - 1) / 2 * height;
+  return vector;
+}

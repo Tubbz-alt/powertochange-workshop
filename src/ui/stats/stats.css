@@ -9,7 +9,7 @@
   /* background-color: rgba(255, 255, 255, 0.5); */
 }
 
-.stats td {
+.stats td, .stats th {
   text-align: right;
 }
 

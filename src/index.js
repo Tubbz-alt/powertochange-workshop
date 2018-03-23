@@ -3,6 +3,7 @@ import { h, render, Component } from 'preact';
 import Scene from './scene';
 import GithubCorner from './ui/github_corner';
 import Stats from './ui/stats';
+import Measurement from './ui/measurement';
 
 class App extends Component {
 
@@ -14,7 +15,17 @@ class App extends Component {
 				width: [0, 'm'],
 				height: [0, 'm'],
 				length: [0, 'm'],
-				endWallArea: [0, 'm²'],
+				// endWallArea: [0, 'm²'],
+			},
+			measurements: {
+				width: {
+					x: 5,
+					y: 10
+				},
+				height: {
+					x: 10,
+					y: 100
+				}
 			}
 		}
 	}
@@ -26,10 +37,27 @@ class App extends Component {
 		})
 	}
 
+	updateMeasurements(newVals) {
+		this.setState(prevState => {
+			prevState.measurements = Object.assign({}, prevState.measurements, newVals);
+			return prevState;
+		});
+	}
+
 	render() {
 		return (
 			<div>
-				<Scene width={window.innerWidth} height={window.innerHeight} updateMetrics={this.updateMetrics.bind(this)} />
+				<Scene
+					width={window.innerWidth}
+					height={window.innerHeight}
+					updateMetrics={this.updateMetrics.bind(this)}
+					updateMeasurements={this.updateMeasurements.bind(this)}
+				/>
+				{
+					Object.entries(this.state.measurements).map( ([title, props]) =>
+						<Measurement title={title} {...props} value={this.state.metrics[title][0].toFixed(2)} />
+					)
+				}
 				<GithubCorner repo="johnrees/powertochange-workshop" />
 				<Stats metrics={this.state.metrics} />
 			</div>
