@@ -35,6 +35,11 @@ export default class Scene extends Component {
     this.lines = new THREE.Line(new THREE.Geometry(), highlightMaterial);
     this.scene.add(this.lines);
 
+    var ground = new THREE.GridHelper(20, 20, 0xDDDDDD, 0xEEEEEE);
+    ground.rotation.x = -Math.PI;
+    ground.position.set(0, -0.005, 0);
+    this.scene.add(ground);
+
     this.renderer.setClearColor(bgColor);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(width, height);
