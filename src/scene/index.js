@@ -3,11 +3,14 @@ import { Observable } from "rxjs";
 import * as THREE from "three";
 import subtract from "lodash/subtract";
 const OrbitControls = require("three-orbit-controls")(THREE);
+// import "./lib/line_segments2";
+// import "./lib/line_segments_geometry";
+// import "./lib/line2";
 
 import Entity from "./entity"
 import Window, { addWindow } from "./entity/window";
 import { MouseButton, getPosition, checkForIntersection, clampedNormal, get2DCoords } from "./lib/utils";
-import { highlightMaterial, shadowMaterial } from "./lib/materials";
+import { extrudePoints, highlightMaterial, shadowMaterial, edgeMaterial } from "./lib/materials";
 import { area } from "./lib/clipper";
 
 export default class Scene extends Component {
@@ -64,7 +67,7 @@ export default class Scene extends Component {
 
     this.raycaster = new THREE.Raycaster();
 
-    this.camera = new THREE.PerspectiveCamera(50, width/height, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
 
     this.controls = new OrbitControls(this.camera);
     this.controls.maxPolarAngle = 1.5;
@@ -76,7 +79,7 @@ export default class Scene extends Component {
       this.controls.object.rotation.copy(objectRotation);
     } else {
       this.camera.position.set(10, 15, -5);
-      this.camera.lookAt(new THREE.Vector3());
+      this.camera.lookAt(new THREE.Vector3(0, 4, 0));
     }
 
     window.addEventListener('unload', () => {
@@ -98,10 +101,13 @@ export default class Scene extends Component {
   }
 
   addEvents() {
+    var line = new THREE.Line(new THREE.Geometry(), edgeMaterial);
+    this.scene.add( line );
 
+    let mouseDown = false;
     // mouse actions
 
-    const interval$ = Observable.interval(3000);
+    const interval$ = Observable.interval(2000);
 
     const wheel$ =
       Observable
@@ -115,13 +121,24 @@ export default class Scene extends Component {
     const mouseUp$ =
       Observable
         .fromEvent(document, 'mouseup')
-        .do(_ => this.controls.enabled = true)
+        .do(_ => {
+          mouseDown = false;
+          this.controls.enabled = true;
+        })
         .share();
 
     const mouseDown$ =
       Observable
         .fromEvent(this.renderer.domElement, 'mousedown')
+        .do(_ => mouseDown = true)
         .share();
+
+    const keyDown$ =
+      Observable
+        .fromEvent(document, 'keydown')
+        .do(event => console.log(event.keyCode))
+        .distinct()
+        .subscribe();
 
     const mouseDownAndMoving$ =
       mouseDown$
@@ -135,7 +152,52 @@ export default class Scene extends Component {
       Observable.merge(mouseMove$, mouseUp$)
         .throttleTime(20)
         .map(checkForIntersection.bind(this))
+        // .do(console.log)
         .share();
+
+    // let l = new THREE.Line3();
+    // let minDistance;
+    // let closestEdgeIndex;
+    // let intersectPoint;
+    // let positions;
+    // let i;
+    // let closestPoint;
+    // let distance;
+    // this.scene.add(l);
+    // const distinctIntersections$ =
+    //   intersections$
+    //     .do(intersections => {
+    //       if (intersections.length > 0) {
+    //         minDistance = 1;
+    //         intersectPoint = intersections[0].point;
+    //         positions = this.entity.children[0].edgesGeometry.getAttribute("position").array;
+    //         for(i = 0; i < positions.length;i+=2) {
+    //           l.start.fromArray(positions,i*3);
+    //           l.end.fromArray(positions,i*3+3);
+    //           closestPoint = l.closestPointToPoint(intersectPoint, false, closestPoint);
+    //           distance = closestPoint.distanceTo(intersectPoint);
+    //           if (distance < minDistance) {
+    //             minDistance = distance;
+    //             closestEdgeIndex = i;
+    //           }
+    //         }
+    //         // return [minDistance, intersections];
+    //       }
+    //       if (minDistance < 0.2) {
+    //         const start = new THREE.Vector3().fromArray(positions, closestEdgeIndex*3);
+    //         const end = new THREE.Vector3().fromArray(positions, closestEdgeIndex*3+3);
+    //         if (start.z !== end.z && start.y > 0) {
+    //           line.geometry.dispose();
+    //           const geometry = new THREE.Geometry();
+    //           geometry.vertices.push(start);
+    //           geometry.vertices.push(end);
+    //           line.geometry = geometry;
+    //           line.visible = true;
+    //         } else {
+    //           line.visible = false;
+    //         }
+    //       }
+    //     })
 
     const distinctIntersections$ =
       intersections$
@@ -145,7 +207,36 @@ export default class Scene extends Component {
           } else {
             return (x.length === y.length)
           }
-        });
+        })
+        .do( intersections => {
+          if (!mouseDown) {
+            if (intersections.length > 0) {
+
+              const verts = [...intersections[0].face.polygon.vertices];
+              line.visible = true;
+              line.geometry.dispose();
+              const geometry = new THREE.Geometry();
+
+              if (verts.length === 4) {
+                geometry.vertices.push(verts[0]);
+                geometry.vertices.push(verts[2]);
+                geometry.vertices.push(verts[3]);
+                geometry.vertices.push(verts[1]);
+                geometry.vertices.push(verts[0]);
+              } else {
+                geometry.vertices.push(verts[0]);
+                geometry.vertices.push(verts[1]);
+                geometry.vertices.push(verts[2]);
+                geometry.vertices.push(verts[3]);
+                geometry.vertices.push(verts[4]);
+                geometry.vertices.push(verts[0]);
+              }
+              line.geometry = geometry;
+            } else {
+              line.visible = false;
+            }
+          }
+        })
 
     const faceMouseDown$ =
       mouseDown$
@@ -156,7 +247,7 @@ export default class Scene extends Component {
 
     const clickExtrude$ =
       faceMouseDown$
-        .do( ([{ buttons }, intersections]) => {
+        .do( ([event, intersections]) => {
           const direction = (buttons === MouseButton.PRIMARY) ? 1 : -1;
           const { polygon } = intersections[0].face;
           polygon.extrude(1 * direction);
@@ -186,6 +277,9 @@ export default class Scene extends Component {
             floors: [this.entity.floors, ''],
             height: [Math.max(...this.entity.children[0].geometry.vertices.map(v => v.y)), 'm']
           });
+
+          line.visible = true;
+          line.geometry.verticesNeedUpdate = true;
         })
         .do(_ => console.log('roof'));
 
@@ -221,10 +315,13 @@ export default class Scene extends Component {
         })
         .do( ([event, intersections]) => {
           const { polygon } = intersections[0].face;
+          // console.log(event)
           const direction = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
           polygon.extrude(1.2 * direction);
           polygon.geometry.verticesNeedUpdate = true;
           polygon.geometry.computeBoundingSphere();
+
+          this.entity.children[0].edgesGeometry.geometry = polygon.geometry;
 
           const endPoints = is.object.geometry.vertices.slice(0, is.object.geometry.vertices.length/2).map(v => ([v.x, v.y]));
           // const endWallArea = [area(endPoints), 'm²'];
@@ -232,6 +329,9 @@ export default class Scene extends Component {
           const length = [Math.abs(groundPoints[1].z - groundPoints[2].z), 'm'];
 
           this.props.updateMetrics({ length });
+
+          line.visible = true;
+          line.geometry.verticesNeedUpdate = true;
 
         })
         .do(_ => console.log('end wall'));
@@ -254,10 +354,15 @@ export default class Scene extends Component {
           });
           is.face.polygon.geometry.verticesNeedUpdate = true;
 
+          this.entity.children[0].edgesGeometry.geometry = is.face.polygon.geometry;
+
           const groundPoints = is.object.geometry.vertices.filter(v => v.y === 0);
           const width = [Math.abs(groundPoints[0].x - groundPoints[1].x), 'm'];
 
           this.props.updateMetrics({ width });
+
+          line.geometry.verticesNeedUpdate = true;
+          line.visible = true;
 
           // console.log(Math.abs(w[0].x - w[1].x));
           // const width = [...is.face.polygon.vertices].filter(v => v.y === 0).map(v => v.z);
@@ -285,7 +390,8 @@ export default class Scene extends Component {
           wallDrag$,
           endWallDrag$,
           roofMouseDown$,
-          interval$
+          interval$,
+          distinctIntersections$
         )
         .throttleTime(20)
         .delay(10)

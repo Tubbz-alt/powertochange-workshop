@@ -10,14 +10,16 @@ export default class Bay {
   constructor(entity, geometry=undefined) {
 
     this.length = 1.2;
-    this.width = 4;
+    this.width = 4.15;
+    this.height = 4.2;
+    this.wallHeight= 2.8;
 
     this.profile = [
       [-this.width/2, 0],
       [this.width/2, 0],
-      [this.width/2, 2],
-      [0, 3.7],
-      [-this.width/2, 2]
+      [this.width/2, this.wallHeight],
+      [0, this.height],
+      [-this.width/2, this.wallHeight]
     ];
 
     this.material = defaultMaterial;
@@ -25,10 +27,12 @@ export default class Bay {
     if (geometry) {
       this.geometry = geometry;
     } else {
-      this.geometry = extrudePoints(1.2, this.profile);//, [curriedOffset(-0.286, this.profile)]);
+      this.geometry = extrudePoints(3.6, this.profile);//, [curriedOffset(-0.286, this.profile)]);
     }
 
+
     this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh.edgesGeometry = new THREE.EdgesGeometry(this.geometry, 0.1);
 
     this.mesh.castShadow = true;
     this.mesh.receiveShadow = true;

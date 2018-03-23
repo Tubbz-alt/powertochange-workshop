@@ -28,6 +28,7 @@ export default class Entity extends THREE.Object3D {
 
       this.children[0].geometry.verticesNeedUpdate = true;
       this.children[0].geometry.computeBoundingSphere();
+      this.children[0].edgesGeometry.geometry = this.children[0].geometry;
     }
   }
 

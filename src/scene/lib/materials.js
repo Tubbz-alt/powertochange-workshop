@@ -1,3 +1,4 @@
+import "./line_material";
 import * as THREE from "three";
 
 import seamless from '../../materials/40_plywood texture-seamless.jpg';
@@ -17,7 +18,7 @@ export const groundMaterial = new THREE.MeshBasicMaterial({ color: 'white', wire
 export const shadowMaterial = new THREE.ShadowMaterial({ side: THREE.DoubleSide, opacity: 0.15, transparent: true });
 export const edgeMaterial = new THREE.LineBasicMaterial({
   color: 0x000000,
-  linewidth: 1,
+  linewidth: 3,
   overdraw: 0.5,
   transparent: false
 });
@@ -25,6 +26,7 @@ export const edgeMaterial = new THREE.LineBasicMaterial({
 var faceTexture = new THREE.TextureLoader().load(seamless);
 faceTexture.wrapS = THREE.RepeatWrapping;
 faceTexture.wrapT = THREE.RepeatWrapping;
+// sideTexture.repeat.set(5,5);
 
 // var sideTexture = new THREE.TextureLoader().load(seamlessHR);
 // sideTexture.wrapS = THREE.RepeatWrapping;

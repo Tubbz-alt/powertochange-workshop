@@ -18,7 +18,8 @@ class App extends Component {
 				// endWallArea: [0, 'm²'],
 			},
 			measurements: {
-			}
+			},
+			cursor: 'default'
 		}
 	}
 
@@ -36,14 +37,22 @@ class App extends Component {
 		});
 	}
 
+	setCursor(newVal) {
+		this.setState(prevState => {
+			prevState.cursor = newVal;
+			return prevState;
+		});
+	}
+
 	render() {
 		return (
-			<div>
+			<div class={this.state.cursor}>
 				<Scene
 					width={window.innerWidth}
 					height={window.innerHeight}
 					updateMetrics={this.updateMetrics.bind(this)}
 					updateMeasurements={this.updateMeasurements.bind(this)}
+					setCursor={this.setCursor.bind(this)}
 				/>
 				{
 					Object.entries(this.state.measurements).map( ([title, props]) =>
