@@ -147,6 +147,28 @@ export default class Scene extends Component {
     const intersectionPt = new THREE.Vector3();
     let is;
 
+    const roofMouseDown$ =
+      faceMouseDown$
+        .filter( ([event, intersections]) => {
+          const intersection = is = intersections[0];//intersections.find(i => i.face);
+          const { face } = intersection;
+          return (
+            face.normal.y !== 0 ||
+            face.normal.y !== -0
+          );
+        })
+        .do( ([event, intersections]) => {
+          const { polygon } = intersections[0].face;
+          const direction = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
+          this.entity.addFloor(direction);
+
+          this.props.updateMetrics({
+            floors: [this.entity.floors, ''],
+            height: [Math.max(...this.entity.children[0].geometry.vertices.map(v => v.y)), 'm']
+          });
+        })
+        .do(_ => console.log('roof'));
+
     const wallMouseDown$ =
       faceMouseDown$
         .filter( ([event, intersections]) => {
@@ -182,6 +204,7 @@ export default class Scene extends Component {
           const direction = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
           polygon.extrude(1.2 * direction);
           polygon.geometry.verticesNeedUpdate = true;
+          polygon.geometry.computeBoundingSphere();
 
           const endPoints = is.object.geometry.vertices.slice(0, is.object.geometry.vertices.length/2).map(v => ([v.x, v.y]));
           const endWallArea = [area(endPoints), 'm²'];
@@ -236,7 +259,8 @@ export default class Scene extends Component {
           // wallMouseDown$,
           // endWallMouseDown$,
           wallDrag$,
-          endWallDrag$
+          endWallDrag$,
+          roofMouseDown$
         )
         .throttleTime(20)
         .delay(10)

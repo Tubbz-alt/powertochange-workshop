@@ -6,6 +6,7 @@ export default class Entity extends THREE.Object3D {
     super();
 
     this.bays = [0];
+    this.floors = 1;
 
     this.bays.forEach( (bayIndex, index) => {
       const bay = new Bay(this);
@@ -15,6 +16,19 @@ export default class Entity extends THREE.Object3D {
 
     this.prepend = this.prepend.bind(this);
     this.append = this.append.bind(this);
+    this.addFloor = this.addFloor.bind(this);
+  }
+
+  addFloor(direction) {
+    if ((direction > 0 && this.floors < 2) || (direction < 0 && this.floors > 1)) {
+      this.floors += direction;
+      this.children[0].geometry.vertices
+        .filter(v => v.y > 0)
+        .forEach(v => v.y += 3 * direction);
+
+      this.children[0].geometry.verticesNeedUpdate = true;
+      this.children[0].geometry.computeBoundingSphere();
+    }
   }
 
   prepend(number=1) {

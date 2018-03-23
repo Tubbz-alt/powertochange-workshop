@@ -7,6 +7,15 @@ import "./stats.css";
 //   length: [7, 'm'],
 // }
 
+function formatValue(key, value) {
+  switch(key) {
+    case "floors":
+      return value;
+    default:
+      return value.toFixed(2);
+  }
+}
+
 export default function Stats({ metrics }) {
   return (
     <div class="stats">
@@ -16,7 +25,7 @@ export default function Stats({ metrics }) {
             Object.entries(metrics).map( ([name, [value, unit]]) =>
               <tr>
                 <th>{name}</th>
-                <td>{value.toFixed(2)}{unit}</td>
+                <td>{formatValue(name, value)}{unit}</td>
               </tr>
             )
           }

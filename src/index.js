@@ -10,6 +10,7 @@ class App extends Component {
 		super(props);
 		this.state = {
 			metrics: {
+				floors: [1, ''],
 				width: [0, 'm'],
 				height: [0, 'm'],
 				length: [0, 'm'],

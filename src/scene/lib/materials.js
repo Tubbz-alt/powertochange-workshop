@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
 export const defaultMaterial = new THREE.MeshNormalMaterial({
-  opacity: 0.4,
-  transparent: true,
+  opacity: 1,
+  transparent: false,
   overdraw: 0.5,
   polygonOffset: true,
   polygonOffsetFactor: 1
