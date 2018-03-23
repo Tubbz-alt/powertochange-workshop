@@ -50,7 +50,7 @@ class App extends Component {
 						<Measurement title={title} {...props} value={this.state.metrics[title][0].toFixed(2)} />
 					)
 				}
-				<GithubCorner repo="johnrees/powertochange-workshop" />
+				<GithubCorner repo="wikihouseproject/powertochange-workshop" />
 				<Stats metrics={this.state.metrics} />
 			</div>
 		);
