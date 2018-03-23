@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel src/index.html",
     "build": "parcel build src/index.html --public-url ./",
-    "predeploy": "rimraf dist && yarn run build",
+    "predeploy": "rimraf dist && yarn run build && echo 'https://hereeast.buildx.cc' > dist/CNAME",
     "deploy": "gh-pages -d dist"
   },
   "author": "John Rees <john@bitsushi.com>",

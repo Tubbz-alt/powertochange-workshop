@@ -18,14 +18,6 @@ class App extends Component {
 				// endWallArea: [0, 'm²'],
 			},
 			measurements: {
-				width: {
-					x: 5,
-					y: 10
-				},
-				height: {
-					x: 10,
-					y: 100
-				}
 			}
 		}
 	}

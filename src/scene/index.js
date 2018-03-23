@@ -7,7 +7,7 @@ const OrbitControls = require("three-orbit-controls")(THREE);
 import Entity from "./entity"
 import Window, { addWindow } from "./entity/window";
 import { MouseButton, getPosition, checkForIntersection, clampedNormal, get2DCoords } from "./lib/utils";
-import { highlightMaterial } from "./lib/materials";
+import { highlightMaterial, shadowMaterial } from "./lib/materials";
 import { area } from "./lib/clipper";
 
 export default class Scene extends Component {
@@ -16,6 +16,7 @@ export default class Scene extends Component {
     super(props);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.shadowMap.enabled = true;
 
     this.render3D = this.render3D.bind(this);
     this.addEvents = this.addEvents.bind(this);
@@ -33,10 +34,29 @@ export default class Scene extends Component {
     this.lines = new THREE.Line(new THREE.Geometry(), highlightMaterial);
     this.scene.add(this.lines);
 
-    var ground = new THREE.GridHelper(20, 20, 0xDDDDDD, 0xEEEEEE);
+    this.scene.add(new THREE.AmbientLight(0xFFFFFF, 1.1));
+
+    const pLight = new THREE.DirectionalLight(0xDDCEB1, 0.3);
+    pLight.position.copy(new THREE.Vector3(8, 20, -10));
+    pLight.lookAt(new THREE.Vector3(0, 2, 0))
+    pLight.shadow.mapSize.width = 1024;
+    pLight.shadow.mapSize.height = 1024;
+    pLight.castShadow = true;
+    this.scene.add(pLight);
+
+    var ground = new THREE.GridHelper(30, 30, 0xDDDDDD, 0xEEEEEE);
     ground.rotation.x = -Math.PI;
     ground.position.set(0, -0.005, 0);
     this.scene.add(ground);
+
+
+    const pg = new THREE.PlaneGeometry(30, 30, 1, 1);
+    pg.rotateX(Math.PI / 2);
+    const me = new THREE.Mesh(pg, shadowMaterial);
+    me.receiveShadow = true;
+
+    this.scene.add(me);
+
 
     this.renderer.setClearColor(bgColor);
     this.renderer.setPixelRatio(window.devicePixelRatio);

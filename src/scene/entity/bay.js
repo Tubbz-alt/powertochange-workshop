@@ -30,9 +30,13 @@ export default class Bay {
 
     this.mesh = new THREE.Mesh(this.geometry, this.material);
 
+    this.mesh.castShadow = true;
+    this.mesh.receiveShadow = true;
+
     // const edgesGeometry = new THREE.EdgesGeometry(this.geometry, 1);
     // const lineSegments = new THREE.LineSegments(edgesGeometry, edgeMaterial);
     // this.mesh.add(lineSegments);
+
     this.mesh.entity = entity;
 
     this.polygons = [];
