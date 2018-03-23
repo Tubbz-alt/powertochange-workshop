@@ -1,22 +1,30 @@
 import { h, Component } from 'preact';
 import { Observable } from "rxjs";
 import * as THREE from "three";
+import subtract from "lodash/subtract";
 const OrbitControls = require("three-orbit-controls")(THREE);
 
 import Entity from "./entity"
 import Window, { addWindow } from "./entity/window";
 import { MouseButton, getPosition, checkForIntersection, clampedNormal } from "./lib/utils";
 import { highlightMaterial } from "./lib/materials";
+import { area } from "./lib/clipper";
 
 export default class Scene extends Component {
 
   constructor(props) {
     super(props);
 
+    console.log("NEEEEEW")
+
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
 
     this.render3D = this.render3D.bind(this);
     this.addEvents = this.addEvents.bind(this);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return false;
   }
 
   componentDidMount() {
@@ -164,6 +172,20 @@ export default class Scene extends Component {
             face.normal.z === 1 || face.normal.z === -1
           );
         })
+        .do( ([event, intersections]) => {
+          const { polygon } = intersections[0].face;
+          const direction = (event.buttons === MouseButton.PRIMARY) ? 1 : -1;
+          polygon.extrude(1.2 * direction);
+          polygon.geometry.verticesNeedUpdate = true;
+
+          const endPoints = is.object.geometry.vertices.slice(0, is.object.geometry.vertices.length/2).map(v => ([v.x, v.y]));
+          const endWallArea = [area(endPoints), 'm²'];
+          const groundPoints = is.object.geometry.vertices.filter(v => v.y === 0);
+          const length = [Math.abs(groundPoints[1].z - groundPoints[2].z), 'm'];
+
+          this.props.updateMetrics({ length, endWallArea });
+
+        })
         .do(_ => console.log('end wall'));
 
     // house actions
@@ -179,6 +201,15 @@ export default class Scene extends Component {
             vertex.x = intersectionPt.x;
           });
           is.face.polygon.geometry.verticesNeedUpdate = true;
+
+          const groundPoints = is.object.geometry.vertices.filter(v => v.y === 0);
+          const width = [Math.abs(groundPoints[0].x - groundPoints[1].x), 'm'];
+
+          this.props.updateMetrics({ width });
+
+          // console.log(Math.abs(w[0].x - w[1].x));
+          // const width = [...is.face.polygon.vertices].filter(v => v.y === 0).map(v => v.z);
+          // console.log(width);
         })
         .repeat();
 

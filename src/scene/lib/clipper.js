@@ -26,8 +26,8 @@ export const offset = (
 
 export const curriedOffset = curry(offset, 6)('jtMiter', 'etClosedPolygon', Infinity, 0);
 
-// export const area = outline => {
-//   const shape = new Clipper([outline.map(toClipper)], true);
-//   const rawArea = shape.totalArea();
-//   return Math.abs(rawArea / multiplier) / multiplier;
-// };
+export const area = outline => {
+  const shape = new Clipper([outline.map(toClipper)], true);
+  const rawArea = shape.totalArea();
+  return Math.abs(rawArea / multiplier) / multiplier;
+};
